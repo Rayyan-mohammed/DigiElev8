@@ -17,21 +17,54 @@ DigiElev8 provides a unified dashboard for business owners and managers to gain 
 
 ## Project Structure
 
-The project follows a modular structure with dedicated sections for each business function:
+```
+DigiElev8/
+├── .vscode/                    # VS Code configuration files
+└── new_3/                      # Main project directory
+    └── public/                 # Public assets and HTML files
+        ├── index.html          # Main landing page
+        ├── dashboard.html      # Dashboard interface
+        ├── profile/            # User profile management
+        ├── sign_log/           # Authentication pages
+        │   ├── login.html      # Login page
+        │   └── signup.html     # Signup page
+        ├── sing_log_social/    # Social authentication
+        ├── sales/              # Sales management module
+        ├── inventary/          # Inventory management module
+        ├── demand/             # Demand tracking module
+        ├── budget/             # Budget management module
+        └── analytics/          # Analytics and reporting
+            ├── inventory_analytics.html    # Inventory analysis
+            ├── sales_analysis.html         # Sales analysis
+            └── profit_analytics.html       # Profit analysis
+```
 
-```
-new_3/
-  └── public/
-      ├── index.html - Main landing page
-      ├── dashboard.html - Business dashboard
-      ├── analytics/ - Business intelligence tools
-      ├── budget/ - Budget management tools
-      ├── demand/ - Demand prediction tools
-      ├── inventory/ - Inventory management tools
-      ├── profile/ - User profile management
-      ├── sales/ - Sales tracking and reporting
-      └── sign_log/ - Authentication system
-```
+## Directory Descriptions
+
+### Authentication
+- `sign_log/`: Contains authentication-related pages
+  - `login.html`: User login interface
+  - `signup.html`: User registration interface
+- `sing_log_social/`: Social media authentication integration
+
+### Core Pages
+- `index.html`: Main landing page
+- `dashboard.html`: Main dashboard interface
+- `profile/`: User profile management section
+
+### Business Modules
+- `sales/`: Sales tracking and management
+- `inventary/`: Inventory management system
+- `demand/`: Demand forecasting and tracking
+- `budget/`: Budget planning and management
+
+### Analytics
+- `analytics/`: Business intelligence and reporting
+  - `inventory_analytics.html`: Inventory analysis and reporting
+  - `sales_analysis.html`: Sales performance analysis
+  - `profit_analytics.html`: Profit and financial analysis
+
+
 
 ## Technologies Used
 
