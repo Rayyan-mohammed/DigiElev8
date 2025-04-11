@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .profile-card {
+            background: #fff;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            max-width: 800px;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .profile-header {
+            background: linear-gradient(135deg, #7494ec, #5a7bd6);
+            padding: 40px;
+            text-align: center;
+            color: #fff;
+            position: relative;
+        }
+
+        .profile-header img {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 4px solid #fff;
+            margin-bottom: 15px;
+            cursor: pointer;
+            object-fit: cover;
+        }
+
+        .profile-header h2 {
+            margin: 10px 0 5px;
+            font-size: 1.8rem;
+        }
+
+        .profile-header p {
+            font-size: 1rem;
+            opacity: 0.8;
+        }
+
+        .profile-body {
+            padding: 40px;
+        }
+
+        .profile-body h5 {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .profile-body p {
+            font-size: 1rem;
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .profile-body .btn {
+            width: 100%;
+            padding: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 8px;
+        }
+
+        .profile-body .btn-primary {
+            background: #7494ec;
+            border: none;
+        }
+
+        .profile-body .btn-primary:hover {
+            background: #5a7bd6;
+        }
+
+        .social-links {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .social-links a {
+            color: #7494ec;
+            font-size: 1.5rem;
+            transition: color 0.3s;
+        }
+
+        .social-links a:hover {
+            color: #5a7bd6;
+        }
+
+        .editable-field {
+            cursor: pointer;
+            border-bottom: 1px dashed #666;
+        }
+
+        .edit-input {
+            width: 100%;
+            padding: 5px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        #profileImageUpload {
+            display: none;
+        }
+        
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #7494ec;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        #debugInfo {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            max-width: 300px;
+            z-index: 9999;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="spinner"></div>
+    </div>
+    
+    <div id="debugInfo"></div>
+
+    <div class="profile-card">
+        <!-- Profile Header -->
+        <div class="profile-header">
+            <input type="file" id="profileImageUpload" accept="image/*">
+            <label for="profileImageUpload">
+                <img id="profileImage" src="https://via.placeholder.com/120" alt="Profile Picture">
+            </label>
+            <h2 id="businessName">Loading...</h2>
+            <p id="email">Loading...</p>
+        </div>
+
+        <!-- Profile Body -->
+        <div class="profile-body">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5>About Me</h5>
+                <button id="toggleEdit" class="btn btn-sm btn-outline-primary">Edit</button>
+            </div>
+            
+            <div id="bioView" class="editable-field"></div>
+            <textarea id="bioEdit" class="edit-input" style="display: none;"></textarea>
+
+            <h5 class="mt-4">Contact Information</h5>
+            <p><strong>Phone:</strong> 
+                <span id="phoneView" class="editable-field"></span>
+                <input type="text" id="phoneEdit" class="edit-input" style="display: none;">
+            </p>
+            <p><strong>Location:</strong> 
+                <span id="locationView" class="editable-field"></span>
+                <input type="text" id="locationEdit" class="edit-input" style="display: none;">
+            </p>
+
+            <h5>Social Links</h5>
+            <div class="social-links">
+                <a href="#" target="_blank"><i class="fab fa-linkedin"></i></a>
+                <a href="#" target="_blank"><i class="fab fa-twitter"></i></a>
+                <a href="#" target="_blank"><i class="fab fa-github"></i></a>
+                <a href="#" target="_blank"><i class="fab fa-instagram"></i></a>
+            </div>
+
+            <button id="logout" class="btn btn-primary mt-4">Logout</button>
+        </div>
+    </div>
+
+    <script type="module">
+        // Show debug info function
+        function showDebug(message) {
+            const debugEl = document.getElementById('debugInfo');
+            debugEl.style.display = 'block';
+            debugEl.innerHTML += message + '<br>';
+            console.log(message);
+        }
+        
+        // Show the loading overlay
+        function showLoading() {
+            document.getElementById('loadingOverlay').style.display = 'flex';
+        }
+        
+        // Hide the loading overlay
+        function hideLoading() {
+            document.getElementById('loadingOverlay').style.display = 'none';
+        }
+        
+        // Check if user session exists in localStorage
+        let userSessionChecked = false;
+        const userSession = localStorage.getItem('userSession');
+        
+        if (userSession) {
+            showDebug("Found user session in localStorage");
+            try {
+                const sessionData = JSON.parse(userSession);
+                if (sessionData && sessionData.expires > Date.now()) {
+                    showDebug("Session is valid");
+                    userSessionChecked = true;
+                    // Will continue with Firebase auth below
+                } else {
+                    showDebug("Session expired, will try Firebase auth");
+                    localStorage.removeItem('userSession');
+                }
+            } catch (e) {
+                showDebug("Error parsing session: " + e.message);
+                localStorage.removeItem('userSession');
+            }
+        } else {
+            showDebug("No session found, will try Firebase auth");
+        }
+
+        try {
+            // Import Firebase with try-catch
+            showDebug("Importing Firebase modules...");
+            
+            // Import Firebase
+            import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+            import { getAuth, onAuthStateChanged, signOut, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+            import { getDatabase, ref, get, update } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+            import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-storage.js";
+
+            showDebug("Firebase modules imported successfully");
+
+            // Firebase configuration
+            const firebaseConfig = {
+                apiKey: "AIzaSyALYm1R6zLm_zTT400fQVx5BN-YANO7d14",
+                authDomain: "digielev8-c2919.firebaseapp.com",
+                databaseURL: "https://digielev8-c2919-default-rtdb.firebaseio.com",
+                projectId: "digielev8-c2919",
+                storageBucket: "digielev8-c2919.appspot.com",
+                messagingSenderId: "708873716626",
+                appId: "1:708873716626:web:85f062775842abf66b774b",
+                measurementId: "G-7LL60Y6C1N"
+            };
+
+            showDebug("Initializing Firebase...");
+            
+            // Initialize Firebase
+            const app = initializeApp(firebaseConfig);
+            const auth = getAuth(app);
+            const database = getDatabase(app);
+            const storage = getStorage(app);
+            
+            showDebug("Firebase initialized successfully");
+
+            let isEditing = false;
+            let currentUserData = {};
+            let authCheckCompleted = false;
+
+            // Try to persist auth state
+            auth.setPersistence('local')
+                .then(() => {
+                    showDebug("Auth persistence set to local");
+                })
+                .catch((error) => {
+                    showDebug("Error setting persistence: " + error.message);
+                });
+
+            // Check for stored user credentials (basic implementation)
+            const storedEmail = localStorage.getItem('userEmail');
+            const storedPassword = localStorage.getItem('userPassword');
+            
+            if (storedEmail && storedPassword) {
+                showDebug("Found stored credentials, attempting to sign in");
+                signInWithEmailAndPassword(auth, storedEmail, storedPassword)
+                    .then((userCredential) => {
+                        showDebug("Auto sign-in successful");
+                    })
+                    .catch((error) => {
+                        showDebug("Auto sign-in failed: " + error.message);
+                        localStorage.removeItem('userEmail');
+                        localStorage.removeItem('userPassword');
+                    });
+            }
+
+            // Check if user is logged in
+            onAuthStateChanged(auth, async (user) => {
+                showDebug("Auth state changed, user: " + (user ? user.email : "null"));
+                authCheckCompleted = true;
+                
+                if (user) {
+                    // Store the session
+                    const sessionData = {
+                        uid: user.uid,
+                        email: user.email,
+                        expires: Date.now() + (24 * 60 * 60 * 1000) // 24 hour expiry
+                    };
+                    localStorage.setItem('userSession', JSON.stringify(sessionData));
+                    
+                    const userId = user.uid;
+                    const userRef = ref(database, 'users/' + userId);
+
+                    try {
+                        showDebug("Fetching user data...");
+                        const snapshot = await get(userRef);
+                        
+                        if (snapshot.exists()) {
+                            showDebug("User data found");
+                            currentUserData = snapshot.val();
+                            document.getElementById("businessName").textContent = currentUserData.businessName || "Business Name";
+                            document.getElementById("email").textContent = user.email;
+                            updateViewFields(currentUserData);
+
+                            if (currentUserData.profileImage) {
+                                document.getElementById('profileImage').src = currentUserData.profileImage;
+                            }
+                        } else {
+                            showDebug("No user data found, creating default data");
+                            // Create default profile if it doesn't exist
+                            const defaultData = {
+                                businessName: "Your Business",
+                                bio: "Click edit to add your bio.",
+                                phone: "Add your phone",
+                                location: "Add your location"
+                            };
+                            
+                            await update(userRef, defaultData);
+                            currentUserData = defaultData;
+                            document.getElementById("businessName").textContent = defaultData.businessName;
+                            document.getElementById("email").textContent = user.email;
+                            updateViewFields(defaultData);
+                        }
+                        hideLoading();
+                    } catch (error) {
+                        showDebug("Error fetching user data: " + error.message);
+                        console.error("Error fetching user data:", error);
+                        hideLoading();
+                    }
+                } else {
+                    showDebug("No user logged in, redirecting to login page");
+                    console.log("No user is logged in, redirecting to login page.");
+                    localStorage.removeItem('userSession');
+                    window.location.href = "/new_3/public/sign_log/login.html";
+                }
+            });
+
+            // Fallback if auth check doesn't complete
+            setTimeout(() => {
+                if (!authCheckCompleted) {
+                    showDebug("Auth check timed out, checking for session data");
+                    // If we have session data but auth failed, try to use that
+                    if (userSessionChecked) {
+                        try {
+                            const sessionData = JSON.parse(localStorage.getItem('userSession'));
+                            if (sessionData) {
+                                showDebug("Using session data to display profile");
+                                document.getElementById("businessName").textContent = "Session User";
+                                document.getElementById("email").textContent = sessionData.email || "Unknown Email";
+                                
+                                // Set default values
+                                updateViewFields({
+                                    bio: "Session data only. Please refresh.",
+                                    phone: "Not available in session mode",
+                                    location: "Not available in session mode"
+                                });
+                                
+                                hideLoading();
+                                return;
+                            }
+                        } catch (e) {
+                            showDebug("Error using session: " + e.message);
+                        }
+                    }
+                    
+                    showDebug("No valid session, redirecting to login");
+                    hideLoading();
+                    window.location.href = "/new_3/public/sign_log/login.html";
+                }
+            }, 10000); // Wait 10 seconds before giving up
+
+            // Profile image upload handler
+            document.getElementById('profileImageUpload').addEventListener('change', async (e) => {
+                const file = e.target.files[0];
+                if (file && auth.currentUser) {
+                    showLoading();
+                    try {
+                        const storageReference = storageRef(storage, `profileImages/${auth.currentUser.uid}`);
+                        await uploadBytes(storageReference, file);
+                        const downloadURL = await getDownloadURL(storageReference);
+                        
+                        await update(ref(database, 'users/' + auth.currentUser.uid), {
+                            profileImage: downloadURL
+                        });
+                        
+                        document.getElementById('profileImage').src = downloadURL;
+                        showDebug("Profile image updated successfully");
+                    } catch (error) {
+                        console.error("Error uploading image:", error);
+                        showDebug("Error updating profile image: " + error.message);
+                    } finally {
+                        hideLoading();
+                    }
+                }
+            });
+
+            // Edit/Save toggle
+            document.getElementById('toggleEdit').addEventListener('click', async () => {
+                if (!auth.currentUser) {
+                    showDebug("Cannot edit: No user logged in");
+                    return;
+                }
+                
+                isEditing = !isEditing;
+                toggleEditMode(isEditing);
+                
+                if (!isEditing) {
+                    showLoading();
+                    const updatedData = {
+                        bio: document.getElementById('bioEdit').value,
+                        phone: document.getElementById('phoneEdit').value,
+                        location: document.getElementById('locationEdit').value
+                    };
+                    
+                    try {
+                        await update(ref(database, 'users/' + auth.currentUser.uid), updatedData);
+                        currentUserData = { ...currentUserData, ...updatedData };
+                        updateViewFields(currentUserData);
+                        showDebug("Profile updated successfully");
+                    } catch (error) {
+                        console.error("Error updating data:", error);
+                        showDebug("Error updating profile: " + error.message);
+                    } finally {
+                        hideLoading();
+                    }
+                }
+            });
+
+            // Logout function with safeguards
+            document.getElementById("logout").addEventListener("click", async () => {
+                showLoading();
+                try {
+                    showDebug("Logging out...");
+                    // Clear any stored session/credentials
+                    localStorage.removeItem('userSession');
+                    localStorage.removeItem('userEmail');
+                    localStorage.removeItem('userPassword');
+                    
+                    await signOut(auth);
+                    showDebug("Logout successful, redirecting...");
+                    setTimeout(() => {
+                        window.location.href = "/new_3/public/sign_log/login.html";
+                    }, 500);
+                } catch (error) {
+                    console.error("Error signing out:", error);
+                    showDebug("Error during logout: " + error.message + ". Forcing redirect.");
+                    setTimeout(() => {
+                        window.location.href = "/new_3/public/sign_log/login.html";
+                    }, 1000);
+                }
+            });
+
+            function toggleEditMode(editing) {
+                document.getElementById('toggleEdit').textContent = editing ? 'Save' : 'Edit';
+                document.getElementById('bioView').style.display = editing ? 'none' : 'block';
+                document.getElementById('bioEdit').style.display = editing ? 'block' : 'none';
+                document.getElementById('phoneView').style.display = editing ? 'none' : 'inline';
+                document.getElementById('phoneEdit').style.display = editing ? 'inline-block' : 'none';
+                document.getElementById('locationView').style.display = editing ? 'none' : 'inline';
+                document.getElementById('locationEdit').style.display = editing ? 'inline-block' : 'none';
+
+                if (editing) {
+                    document.getElementById('bioEdit').value = currentUserData.bio || '';
+                    document.getElementById('phoneEdit').value = currentUserData.phone || '';
+                    document.getElementById('locationEdit').value = currentUserData.location || '';
+                }
+            }
+
+            function updateViewFields(data) {
+                document.getElementById('bioView').textContent = data.bio || "No bio available.";
+                document.getElementById('phoneView').textContent = data.phone || "Not provided";
+                document.getElementById('locationView').textContent = data.location || "Not provided";
+            }
+            
+            // Initialize the profile page even without auth
+            document.getElementById('toggleEdit').addEventListener('click', function() {
+                if (!auth || !auth.currentUser) {
+                    showDebug("Authentication required for editing");
+                }
+            });
+            
+        } catch (error) {
+            showDebug("Critical error initializing page: " + error.message);
+            console.error("Critical error:", error);
+            hideLoading();
+            
+            // Show error on page instead of immediate redirect
+            document.getElementById('businessName').textContent = "Error Loading Profile";
+            document.getElementById('email').textContent = "Authentication failed";
+            document.getElementById('bioView').textContent = "There was a problem loading your profile. Please try logging in again.";
+            
+            // Add a button to manually redirect
+            const logoutBtn = document.getElementById('logout');
+            logoutBtn.textContent = "Return to Login";
+            logoutBtn.addEventListener('click', function() {
+                window.location.href = "/new_3/public/sign_log/login.html";
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sales Analytics</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary-color: #1e3a8a;
+            --secondary-color: #2563eb;
+            --text-color: #1f2937;
+            --light-bg: #f3f4f6;
+            --card-bg: #ffffff;
+            --border-color: #e5e7eb;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+            --muted-color: #6b7280;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: var(--light-bg);
+            color: var(--text-color);
+            line-height: 1.5;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary-color), #1e40af);
+            color: white;
+            padding: 1rem 0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .header-content {
+            width: 90%;
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            letter-spacing: -0.025em;
+        }
+
+        .logo span {
+            color: #93c5fd;
+            font-weight: 300;
+        }
+
+        .date-display {
+            font-size: 0.875rem;
+            opacity: 0.9;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 1.5rem auto;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .summary-card {
+            background: var(--card-bg);
+            border-radius: 0.5rem;
+            padding: 1.25rem;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            transition: all 0.2s ease;
+            border: 1px solid var(--border-color);
+        }
+
+        .summary-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        .summary-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.75rem;
+        }
+
+        .summary-card h3 {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: var(--muted-color);
+            font-weight: 500;
+            letter-spacing: 0.025em;
+        }
+
+        .summary-icon {
+            background: rgba(37, 99, 235, 0.1);
+            color: var(--secondary-color);
+            width: 32px;
+            height: 32px;
+            border-radius: 0.375rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.875rem;
+        }
+
+        .summary-value {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .summary-subtext {
+            font-size: 0.75rem;
+            color: var(--muted-color);
+        }
+
+        .charts-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .chart-container {
+            background: var(--card-bg);
+            border-radius: 0.5rem;
+            padding: 1.25rem;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            border: 1px solid var(--border-color);
+            height: 300px;
+            position: relative;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .chart-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        .chart-actions select {
+            padding: 0.25rem 0.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            background: var(--card-bg);
+            color: var(--text-color);
+            cursor: pointer;
+        }
+
+        .chart-wrapper {
+            height: 220px;
+            position: relative;
+        }
+
+        .table-container {
+            background: var(--card-bg);
+            border-radius: 0.5rem;
+            padding: 1.25rem;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            border: 1px solid var(--border-color);
+            overflow-x: auto;
+        }
+
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .table-header h2 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.875rem;
+        }
+
+        .data-table th, 
+        .data-table td {
+            padding: 0.75rem 1rem;
+            text-align: left;
+        }
+
+        .data-table th {
+            font-weight: 500;
+            color: var(--muted-color);
+            background-color: #f9fafb;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .data-table td {
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .data-table tbody tr:hover {
+            background-color: #f9fafb;
+        }
+
+        .sales-positive {
+            color: var(--success-color);
+            font-weight: 500;
+        }
+
+        .sales-negative {
+            color: var(--danger-color);
+            font-weight: 500;
+        }
+
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem;
+            color: var(--muted-color);
+            text-align: center;
+        }
+
+        .empty-state i {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .empty-state p {
+            font-size: 0.875rem;
+        }
+
+        footer {
+            background: var(--primary-color);
+            color: white;
+            text-align: center;
+            padding: 1rem 0;
+            margin-top: 2rem;
+            font-size: 0.75rem;
+            opacity: 0.9;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            }
+
+            .summary-value {
+                font-size: 1.25rem;
+            }
+
+            .chart-container {
+                height: 280px;
+            }
+
+            .chart-wrapper {
+                height: 200px;
+            }
+
+            .data-table {
+                font-size: 0.75rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <div class="logo">
+                <h1>Sales <span>Analytics</span></h1>
+            </div>
+            <div class="date-display" id="current-date"></div>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="dashboard-grid">
+            <div class="summary-card">
+                <div class="summary-header">
+                    <h3>Total Sales</h3>
+                    <div class="summary-icon">
+                        <i class="fas fa-wallet"></i>
+                    </div>
+                </div>
+                <div class="summary-value" id="total-sales-value">₹0</div>
+                <div class="summary-subtext">Total revenue from all sales</div>
+            </div>
+
+            <div class="summary-card">
+                <div class="summary-header">
+                    <h3>Units Sold</h3>
+                    <div class="summary-icon">
+                        <i class="fas fa-box"></i>
+                    </div>
+                </div>
+                <div class="summary-value" id="total-units-sold">0</div>
+                <div class="summary-subtext">Total units sold</div>
+            </div>
+
+            <div class="summary-card">
+                <div class="summary-header">
+                    <h3>Top Product</h3>
+                    <div class="summary-icon">
+                        <i class="fas fa-star"></i>
+                    </div>
+                </div>
+                <div class="summary-value" id="top-product">-</div>
+                <div class="summary-subtext">Highest selling product</div>
+            </div>
+
+            <div class="summary-card">
+                <div class="summary-header">
+                    <h3>Avg. Sale Value</h3>
+                    <div class="summary-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                </div>
+                <div class="summary-value" id="avg-sale-value">₹0</div>
+                <div class="summary-subtext">Average sale value per transaction</div>
+            </div>
+        </div>
+
+        <div class="charts-row">
+            <div class="chart-container">
+                <div class="chart-header">
+                    <div class="chart-title">Sales by Product</div>
+                    <div class="chart-actions">
+                        <select id="sales-chart-type">
+                            <option value="bar">Bar</option>
+                            <option value="line">Line</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="chart-wrapper">
+                    <canvas id="salesChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <div class="chart-header">
+                    <div class="chart-title">Sales Distribution</div>
+                    <div class="chart-actions">
+                        <select id="distribution-chart-type">
+                            <option value="doughnut">Doughnut</option>
+                            <option value="pie">Pie</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="chart-wrapper">
+                    <canvas id="distributionChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <div class="table-header">
+                <h2>Sales Breakdown</h2>
+            </div>
+            <div id="table-content">
+                <table class="data-table" id="sales-table">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Units Sold</th>
+                            <th>Total Sales</th>
+                            <th>Avg. Sale Value</th>
+                        </tr>
+                    </thead>
+                    <tbody id="sales-body"></tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 DigiElev8. All Rights Reserved.</p>
+    </footer>
+
+    <script>
+        // Initialize date display
+        function updateDateDisplay() {
+            const dateElement = document.getElementById('current-date');
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            dateElement.textContent = new Date().toLocaleDateString('en-US', options);
+        }
+        updateDateDisplay();
+
+        // Get sales history from localStorage
+        let salesHistory = JSON.parse(localStorage.getItem('salesHistory') || '[]');
+        let salesChart, distributionChart;
+
+        function formatCurrency(value) {
+            return '₹' + parseFloat(value).toLocaleString('en-IN', {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            });
+        }
+
+        function calculateSalesMetrics() {
+            let totalSales = 0;
+            let totalUnitsSold = 0;
+            let topProduct = { name: '-', sales: 0 };
+            let avgSaleValue = 0;
+
+            salesHistory.forEach(sale => {
+                totalSales += sale.totalSales;
+                totalUnitsSold += sale.quantitySold;
+
+                if (sale.totalSales > topProduct.sales) {
+                    topProduct = { name: sale.productName, sales: sale.totalSales };
+                }
+            });
+
+            avgSaleValue = totalSales / salesHistory.length;
+
+            document.getElementById('total-sales-value').textContent = formatCurrency(totalSales);
+            document.getElementById('total-units-sold').textContent = totalUnitsSold;
+            document.getElementById('top-product').textContent = topProduct.name;
+            document.getElementById('avg-sale-value').textContent = formatCurrency(avgSaleValue);
+        }
+
+        function renderSalesData() {
+            const salesBody = document.getElementById('sales-body');
+            const tableContent = document.getElementById('table-content');
+
+            if (salesHistory.length === 0) {
+                tableContent.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-chart-bar"></i>
+                        <p>No sales data available yet</p>
+                    </div>
+                `;
+                return;
+            }
+
+            salesBody.innerHTML = '';
+            let productNames = [], salesData = [];
+
+            salesHistory.forEach(sale => {
+                productNames.push(sale.productName);
+                salesData.push(sale.totalSales);
+
+                const row = salesBody.insertRow();
+                row.innerHTML = `
+                    <td>${sale.productName}</td>
+                    <td>${sale.quantitySold}</td>
+                    <td>${formatCurrency(sale.totalSales)}</td>
+                    <td>${formatCurrency(sale.totalSales / sale.quantitySold)}</td>
+                `;
+            });
+
+            createCharts(productNames, salesData);
+            calculateSalesMetrics();
+        }
+
+        function createCharts(labels, salesData) {
+            // Destroy existing charts if they exist
+            if (salesChart) salesChart.destroy();
+            if (distributionChart) distributionChart.destroy();
+
+            // Color palette for charts
+            const backgroundColors = [
+                'rgba(59, 130, 246, 0.7)',
+                'rgba(16, 185, 129, 0.7)',
+                'rgba(249, 115, 22, 0.7)',
+                'rgba(139, 92, 246, 0.7)',
+                'rgba(236, 72, 153, 0.7)',
+                'rgba(245, 158, 11, 0.7)',
+                'rgba(6, 182, 212, 0.7)',
+                'rgba(124, 58, 237, 0.7)',
+                'rgba(239, 68, 68, 0.7)',
+                'rgba(34, 197, 94, 0.7)'
+            ];
+
+            // Limit data to top 5 items if there are more
+            let chartLabels = [...labels];
+            let chartSalesData = [...salesData];
+
+            if (labels.length > 5) {
+                // Sort by sales amount and get top 5
+                let combinedData = labels.map((label, i) => ({
+                    label,
+                    sales: parseFloat(salesData[i])
+                }));
+
+                combinedData.sort((a, b) => b.sales - a.sales);
+
+                const top5 = combinedData.slice(0, 5);
+                chartLabels = top5.map(item => item.label);
+                chartSalesData = top5.map(item => item.sales);
+            }
+
+            // Sales Chart
+            const salesChartType = document.getElementById('sales-chart-type').value;
+            const salesCtx = document.getElementById('salesChart').getContext('2d');
+
+            salesChart = new Chart(salesCtx, {
+                type: salesChartType,
+                data: {
+                    labels: chartLabels,
+                    datasets: [{
+                        label: 'Sales',
+                        data: chartSalesData,
+                        backgroundColor: backgroundColors.slice(0, chartLabels.length),
+                        borderColor: backgroundColors.map(color => color.replace('0.7', '1')).slice(0, chartLabels.length),
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return formatCurrency(context.parsed.y || context.parsed);
+                                }
+                            }
+                        }
+                    },
+                    scales: salesChartType !== 'pie' ? {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return formatCurrency(value);
+                                },
+                                font: {
+                                    size: 10
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                font: {
+                                    size: 10
+                                }
+                            },
+                            grid: {
+                                display: false
+                            }
+                        }
+                    } : undefined
+                }
+            });
+
+            // Distribution Chart
+            const distributionChartType = document.getElementById('distribution-chart-type').value;
+            const distributionCtx = document.getElementById('distributionChart').getContext('2d');
+
+distributionChart = new Chart(distributionCtx, {
+    type: distributionChartType,
+    data: {
+        labels: chartLabels,
+        datasets: [{
+            label: 'Sales Distribution',
+            data: chartSalesData,
+            backgroundColor: backgroundColors.slice(0, chartLabels.length),
+            borderColor: backgroundColors.map(color => color.replace('0.7', '1')).slice(0, chartLabels.length),
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom',
+                labels: {
+                    font: {
+                        size: 10
+                    }
+                }
+            },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        return formatCurrency(context.parsed.y || context.parsed);
+                    }
+                }
+            }
+        }
+    }
+});
+}
+
+// Event listeners for chart type changes
+document.getElementById('sales-chart-type').addEventListener('change', () => {
+const productNames = salesHistory.map(sale => sale.productName);
+const salesData = salesHistory.map(sale => sale.totalSales);
+createCharts(productNames, salesData);
+});
+
+document.getElementById('distribution-chart-type').addEventListener('change', () => {
+const productNames = salesHistory.map(sale => sale.productName);
+const salesData = salesHistory.map(sale => sale.totalSales);
+createCharts(productNames, salesData);
+});
+
+// Initial render
+renderSalesData();
+
+// Example data (you can replace this with actual data from your backend or localStorage)
+const exampleData = [
+{ productName: 'Product A', quantitySold: 120, totalSales: 120000 },
+{ productName: 'Product B', quantitySold: 80, totalSales: 80000 },
+{ productName: 'Product C', quantitySold: 150, totalSales: 150000 },
+{ productName: 'Product D', quantitySold: 90, totalSales: 90000 },
+{ productName: 'Product E', quantitySold: 60, totalSales: 60000 },
+{ productName: 'Product F', quantitySold: 110, totalSales: 110000 }
+];
+
+// Uncomment the following line to load example data
+// salesHistory = exampleData;
+
+// Save to localStorage (for demonstration purposes)
+localStorage.setItem('salesHistory', JSON.stringify(salesHistory));
+</script>
+</body>
+</html>

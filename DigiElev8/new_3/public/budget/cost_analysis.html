@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cost Analysis | Business Portal</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .text-danger { color: red; }
+        .text-success { color: green; }
+    </style>
+    <script>
+        // Sample data for demonstration
+        const sampleBudgets = [
+            { budgetName: "Marketing", amount: 5000, category: "Advertising", date: "2023-10-01", actualAmount: 5200 },
+            { budgetName: "Office Supplies", amount: 2000, category: "Operations", date: "2023-10-05", actualAmount: 1800 },
+            { budgetName: "Employee Salaries", amount: 15000, category: "Payroll", date: "2023-10-10", actualAmount: 15000 },
+            { budgetName: "Travel Expenses", amount: 3000, category: "Operations", date: "2023-10-15", actualAmount: 2500 },
+        ];
+
+        // Load budgets from localStorage or use sample data
+        let budgets = JSON.parse(localStorage.getItem("budgets")) || sampleBudgets;
+
+        // Load cost analysis on page load
+        document.addEventListener("DOMContentLoaded", () => {
+            loadCostAnalysis();
+            populateCategoryFilter();
+        });
+
+        // Load and display cost analysis
+        function loadCostAnalysis() {
+            populateTable(budgets);
+            updateSummary(budgets);
+            renderPieChart(budgets);
+            renderBarChart(budgets);
+            checkOverBudget(budgets);
+        }
+
+        // Populate the table with budget data
+        function populateTable(data) {
+            const costTable = document.getElementById("costTable");
+            let totalCost = 0;
+            costTable.innerHTML = "";
+
+            data.forEach((budget, index) => {
+                totalCost += parseFloat(budget.amount);
+                const variance = budget.amount - (budget.actualAmount || 0);
+
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${budget.budgetName}</td>
+                    <td>${budget.amount}</td>
+                    <td>${budget.actualAmount || 0}</td>
+                    <td class="${variance < 0 ? 'text-danger' : 'text-success'}">${variance}</td>
+                    <td>${budget.category}</td>
+                    <td>${budget.date}</td>
+                `;
+                costTable.appendChild(row);
+            });
+
+            document.getElementById("totalCost").textContent = `Total Cost: INR ${totalCost.toFixed(2)}`;
+        }
+
+        // Render pie chart
+        function renderPieChart(data) {
+            const categoryWiseCost = data.reduce((acc, budget) => {
+                acc[budget.category] = (acc[budget.category] || 0) + parseFloat(budget.amount);
+                return acc;
+            }, {});
+
+            const ctx = document.getElementById("pieChart").getContext("2d");
+            new Chart(ctx, {
+                type: "pie",
+                data: {
+                    labels: Object.keys(categoryWiseCost),
+                    datasets: [{
+                        data: Object.values(categoryWiseCost),
+                        backgroundColor: ["#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0", "#9966FF"],
+                    }],
+                },
+                options: { responsive: true },
+            });
+        }
+
+        // Render bar chart
+        function renderBarChart(data) {
+            const monthlyCost = data.reduce((acc, budget) => {
+                const month = new Date(budget.date).toLocaleString('default', { month: 'short' });
+                acc[month] = (acc[month] || 0) + parseFloat(budget.amount);
+                return acc;
+            }, {});
+
+            const ctx = document.getElementById("barChart").getContext("2d");
+            new Chart(ctx, {
+                type: "bar",
+                data: {
+                    labels: Object.keys(monthlyCost),
+                    datasets: [{
+                        label: "Monthly Cost",
+                        data: Object.values(monthlyCost),
+                        backgroundColor: "#36A2EB",
+                    }],
+                },
+                options: {
+                    responsive: true,
+                    scales: { y: { beginAtZero: true } },
+                },
+            });
+        }
+
+        // Update summary section
+        function updateSummary(data) {
+            const totalBudgeted = data.reduce((sum, budget) => sum + parseFloat(budget.amount), 0);
+            const totalActual = data.reduce((sum, budget) => sum + parseFloat(budget.actualAmount || 0), 0);
+            const averageCost = totalBudgeted / data.length;
+            const categoryWiseCost = data.reduce((acc, budget) => {
+                acc[budget.category] = (acc[budget.category] || 0) + parseFloat(budget.amount);
+                return acc;
+            }, {});
+            const mostExpensiveCategory = Object.entries(categoryWiseCost).sort((a, b) => b[1] - a[1])[0][0];
+
+            document.getElementById("totalBudgeted").textContent = totalBudgeted.toFixed(2);
+            document.getElementById("totalActual").textContent = totalActual.toFixed(2);
+            document.getElementById("averageCost").textContent = averageCost.toFixed(2);
+            document.getElementById("mostExpensiveCategory").textContent = mostExpensiveCategory;
+        }
+
+        // Check for over-budget items
+        function checkOverBudget(data) {
+            data.forEach(budget => {
+                if (budget.actualAmount > budget.amount) {
+                    alert(`Warning: ${budget.budgetName} in ${budget.category} is over budget!`);
+                }
+            });
+        }
+
+        // Filter by category
+        function filterByCategory() {
+            const selectedCategory = document.getElementById("categoryFilter").value;
+            const filteredBudgets = selectedCategory === "all" 
+                ? budgets 
+                : budgets.filter(budget => budget.category === selectedCategory);
+            populateTable(filteredBudgets);
+        }
+
+        // Populate category filter dropdown
+        function populateCategoryFilter() {
+            const categories = [...new Set(budgets.map(budget => budget.category))];
+            const categoryFilter = document.getElementById("categoryFilter");
+            categories.forEach(category => {
+                const option = document.createElement("option");
+                option.value = category;
+                option.textContent = category;
+                categoryFilter.appendChild(option);
+            });
+        }
+
+        // Export to CSV
+        function exportToCSV() {
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += "Budget Name,Amount,Actual Amount,Category,Date\n";
+            budgets.forEach(budget => {
+                csvContent += `${budget.budgetName},${budget.amount},${budget.actualAmount || 0},${budget.category},${budget.date}\n`;
+            });
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "cost_analysis.csv");
+            document.body.appendChild(link);
+            link.click();
+        }
+    </script>
+</head>
+<body>
+    <div class="container mt-5">
+        <h2 class="text-center">Cost Analysis</h2>
+
+        <!-- Filters -->
+        <div class="row mt-4">
+            <div class="col-md-4">
+                <label for="categoryFilter" class="form-label">Filter by Category:</label>
+                <select id="categoryFilter" class="form-select" onchange="filterByCategory()">
+                    <option value="all">All Categories</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label for="searchBar" class="form-label">Search:</label>
+                <input type="text" id="searchBar" class="form-control" placeholder="Search by name or category" oninput="searchBudgets()">
+            </div>
+            <div class="col-md-4">
+                <button onclick="exportToCSV()" class="btn btn-primary mt-4">Export to CSV</button>
+            </div>
+        </div>
+
+        <!-- Budget Breakdown Table -->
+        <div class="mt-5">
+            <h4>Budget Breakdown</h4>
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Budget Name</th>
+                        <th>Budgeted Amount</th>
+                        <th>Actual Amount</th>
+                        <th>Variance</th>
+                        <th>Category</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody id="costTable"></tbody>
+            </table>
+            <h5 id="totalCost" class="mt-3 text-end"></h5>
+        </div>
+
+        <!-- Summary Section -->
+        <div class="mt-5">
+            <h4>Summary</h4>
+            <p>Total Budgeted: <span id="totalBudgeted"></span></p>
+            <p>Total Actual: <span id="totalActual"></span></p>
+            <p>Average Cost per Category: <span id="averageCost"></span></p>
+            <p>Most Expensive Category: <span id="mostExpensiveCategory"></span></p>
+        </div>
+
+        <!-- Charts -->
+        <div class="row mt-5">
+            <div class="col-md-6">
+                <h4>Cost Distribution (Pie Chart)</h4>
+                <canvas id="pieChart" width="200" height="200"></canvas>
+            </div>
+            <div class="col-md-6">
+                <h4>Monthly Trends (Bar Chart)</h4>
+                <canvas id="barChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generate Report</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Improved Base Styles */
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 30px 0;
+        }
+
+        .container {
+            max-width: 900px;
+        }
+
+        /* Enhanced Card Styles */
+        .card {
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+            padding: 25px;
+            background-color: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border: none;
+            margin-bottom: 30px;
+        }
+
+        /* Typography Improvements */
+        h1 {
+            color: #2c3e50;
+            font-weight: 700;
+            margin-bottom: 30px;
+            font-size: 2.5rem;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.1);
+        }
+
+        label {
+            font-weight: 500;
+            color: #34495e;
+            margin-bottom: 8px;
+            font-size: 1rem;
+        }
+
+        /* Form Input Styling */
+        .form-control {
+            border-radius: 12px;
+            padding: 12px 15px;
+            border: 1px solid #dce0e4;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            border-color: #2c3e50;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+
+        /* Button Enhancements */
+        .download-btn {
+            background: linear-gradient(45deg, #2c3e50, #2c3e50);
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            padding: 12px 30px;
+            border-radius: 50px;
+            box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .download-btn:hover {
+            background: linear-gradient(45deg, #0056b3, #2c3e50);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 123, 255, 0.4);
+        }
+
+        .download-btn:active {
+            transform: translateY(1px);
+        }
+
+        /* Chart Container Styling */
+        .chart-container {
+            background-color: white;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+            margin-top: 40px;
+            margin-bottom: 40px;
+        }
+
+        /* Animation Enhancements */
+        .fadeIn {
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        @keyframes fadeIn {
+            0% { opacity: 0; transform: translateY(20px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .card {
+                padding: 20px;
+            }
+            
+            .download-btn {
+                padding: 10px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center mb-5 fadeIn">Generate Sales Report</h1>
+
+        <div class="card fadeIn">
+            <!-- Date Range Form -->
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="start-date">Start Date</label>
+                        <input type="date" id="start-date" class="form-control">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="end-date">End Date</label>
+                        <input type="date" id="end-date" class="form-control">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filter Button -->
+            <div class="text-center mt-4">
+                <button class="download-btn" onclick="filterSalesData()">Filter Data</button>
+            </div>
+        </div>
+
+        <!-- Chart Section -->
+        <div class="chart-container fadeIn">
+            <canvas id="report-sales-chart" width="400" height="200"></canvas>
+        </div>
+
+        <!-- Download Excel Button -->
+        <div class="text-center fadeIn">
+            <button class="download-btn" onclick="downloadReport()">Download Report</button>
+        </div>
+    </div>
+
+    <script>
+        // Get sales data from localStorage
+        const salesHistory = JSON.parse(localStorage.getItem('salesHistory') || '[]');
+
+        // Initialize Chart
+        const ctx = document.getElementById('report-sales-chart').getContext('2d');
+        let reportSalesChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Sales ($)',
+                    data: [],
+                    borderColor: '#1a73e8',
+                    backgroundColor: 'rgba(26, 115, 232, 0.1)',
+                    borderWidth: 3,
+                    pointBackgroundColor: '#fff',
+                    pointBorderColor: '#1a73e8',
+                    pointRadius: 4,
+                    tension: 0.3,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        labels: {
+                            font: {
+                                family: 'Poppins'
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Function to filter sales data based on date range
+        function filterSalesData() {
+            const startDate = document.getElementById('start-date').value;
+            const endDate = document.getElementById('end-date').value;
+
+            if (!startDate || !endDate) {
+                alert('Please select both start and end dates.');
+                return;
+            }
+
+            const filteredData = salesHistory.filter(sale => {
+                const saleDate = new Date(sale.date);
+                return saleDate >= new Date(startDate) && saleDate <= new Date(endDate);
+            });
+
+            const groupedData = filteredData.reduce((acc, sale) => {
+                if (!acc[sale.date]) {
+                    acc[sale.date] = { totalSales: 0, totalProfit: 0 };
+                }
+                acc[sale.date].totalSales += sale.totalSales;
+                acc[sale.date].totalProfit += (sale.salesPrice - sale.inventoryPrice) * sale.quantitySold;
+                return acc;
+            }, {});
+
+            const labels = Object.keys(groupedData);
+            const salesData = labels.map(date => groupedData[date].totalSales);
+            const profitData = labels.map(date => groupedData[date].totalProfit);
+
+            // Update Chart
+            reportSalesChart.data.labels = labels;
+            reportSalesChart.data.datasets[0].data = salesData;
+            reportSalesChart.update();
+        }
+
+        // Function to download report as CSV
+        function downloadReport() {
+            const startDate = document.getElementById('start-date').value;
+            const endDate = document.getElementById('end-date').value;
+
+            if (!startDate || !endDate) {
+                alert('Please select both start and end dates.');
+                return;
+            }
+
+            const filteredData = salesHistory.filter(sale => {
+                const saleDate = new Date(sale.date);
+                return saleDate >= new Date(startDate) && saleDate <= new Date(endDate);
+            });
+
+            let csvContent = "data:text/csv;charset=utf-8,Product Name,Inventory Price,Sales Price,Quantity Sold,Total Sales,Profit per unit,Total Profit,Date\n";
+            filteredData.forEach(sale => {
+                csvContent += `${sale.productName},${sale.inventoryPrice},${sale.salesPrice},${sale.quantitySold},${sale.totalSales.toFixed(2)},${(sale.salesPrice - sale.inventoryPrice).toFixed(2)},${(sale.totalSales - (sale.inventoryPrice * sale.quantitySold)).toFixed(2)},${sale.date}\n`;
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.href = encodedUri;
+            link.download = "sales_report.csv";
+            link.click();
+        }
+
+        // Set default dates on page load
+        window.onload = function() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('start-date').value = today;
+            document.getElementById('end-date').value = today;
+        };
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
+</body>
+</html>

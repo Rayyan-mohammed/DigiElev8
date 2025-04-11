@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .profile-card {
+            background: #fff;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            max-width: 800px;
+            width: 100%;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .profile-card:hover {
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .profile-header {
+            background: linear-gradient(135deg, #7494ec, #5a7bd6);
+            padding: 40px;
+            text-align: center;
+            color: #fff;
+            position: relative;
+        }
+
+        .profile-image-container {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 15px;
+        }
+
+        .profile-header img {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 4px solid #fff;
+            object-fit: cover;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .profile-header img:hover {
+            transform: scale(1.05);
+        }
+
+        .change-photo-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            cursor: pointer;
+        }
+
+        .profile-image-container:hover .change-photo-overlay {
+            opacity: 1;
+        }
+
+        .profile-header h2 {
+            margin: 10px 0 5px;
+            font-size: 1.8rem;
+            font-weight: 600;
+        }
+
+        .profile-header p {
+            font-size: 1rem;
+            opacity: 0.8;
+        }
+
+        .profile-body {
+            padding: 40px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .profile-body h5 {
+            font-size: 1.2rem;
+            color: #333;
+            margin: 0;
+        }
+
+        .profile-info {
+            margin-bottom: 30px;
+        }
+
+        .profile-body p {
+            font-size: 1rem;
+            color: #666;
+            margin-bottom: 15px;
+        }
+
+        .profile-body .btn {
+            padding: 10px 20px;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .profile-body .btn-outline-primary {
+            color: #5a7bd6;
+            border-color: #5a7bd6;
+        }
+
+        .profile-body .btn-outline-primary:hover {
+            background-color: #5a7bd6;
+            color: white;
+        }
+
+        .profile-body .btn-primary {
+            background: #7494ec;
+            border: none;
+        }
+
+        .profile-body .btn-primary:hover {
+            background: #5a7bd6;
+            transform: translateY(-2px);
+        }
+
+        .social-links {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 25px;
+        }
+
+        .social-links a {
+            color: #7494ec;
+            font-size: 1.5rem;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: #f8f9fa;
+        }
+
+        .social-links a:hover {
+            color: white;
+            background-color: #5a7bd6;
+            transform: translateY(-3px);
+        }
+
+        .editable-field {
+            cursor: pointer;
+            border-bottom: 1px dashed #ccc;
+            padding: 3px 0;
+            transition: all 0.3s ease;
+        }
+
+        .editable-field:hover {
+            border-bottom-color: #5a7bd6;
+        }
+
+        .edit-input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .edit-input:focus {
+            border-color: #5a7bd6;
+            box-shadow: 0 0 0 2px rgba(90, 123, 214, 0.2);
+            outline: none;
+        }
+
+        textarea.edit-input {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        #profileImageUpload {
+            display: none;
+        }
+
+        .loading-spinner {
+            display: none;
+            width: 24px;
+            height: 24px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .status-message {
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            text-align: center;
+            display: none;
+        }
+
+        .status-message.success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .status-message.error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .logout-container {
+            margin-top: 30px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="profile-card">
+        <!-- Profile Header -->
+        <div class="profile-header">
+            <div class="profile-image-container">
+                <input type="file" id="profileImageUpload" accept="image/*">
+                <label for="profileImageUpload">
+                    <img id="profileImage" src="https://via.placeholder.com/120" alt="Profile Picture">
+                    <div class="change-photo-overlay">
+                        <i class="fas fa-camera"></i> Change
+                    </div>
+                </label>
+            </div>
+            <div id="loadingProfile" class="loading-spinner"></div>
+            <h2 id="businessName">Loading...</h2>
+            <p id="email">Loading...</p>
+        </div>
+
+        <!-- Profile Body -->
+        <div class="profile-body">
+            <div id="statusMessage" class="status-message"></div>
+            
+            <div class="section-header">
+                <h5>About Me</h5>
+                <button id="toggleEdit" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-edit me-1"></i> Edit
+                </button>
+            </div>
+            
+            <div class="profile-info">
+                <div id="bioView" class="editable-field"></div>
+                <textarea id="bioEdit" class="edit-input" placeholder="Tell us about yourself or your business..." style="display: none;"></textarea>
+            </div>
+
+            <div class="section-header">
+                <h5>Contact Information</h5>
+            </div>
+            
+            <div class="profile-info">
+                <p>
+                    <i class="fas fa-phone me-2 text-primary"></i>
+                    <strong>Phone:</strong> 
+                    <span id="phoneView" class="editable-field ms-2"></span>
+                    <input type="text" id="phoneEdit" class="edit-input" placeholder="Your phone number" style="display: none;">
+                </p>
+                <p>
+                    <i class="fas fa-map-marker-alt me-2 text-primary"></i>
+                    <strong>Location:</strong> 
+                    <span id="locationView" class="editable-field ms-2"></span>
+                    <input type="text" id="locationEdit" class="edit-input" placeholder="Your location" style="display: none;">
+                </p>
+            </div>
+
+            <div class="section-header">
+                <h5>Social Links</h5>
+            </div>
+            
+            <div class="social-links">
+                <a href="#" target="_blank" title="LinkedIn"><i class="fab fa-linkedin"></i></a>
+                <a href="#" target="_blank" title="Twitter"><i class="fab fa-twitter"></i></a>
+                <a href="#" target="_blank" title="GitHub"><i class="fab fa-github"></i></a>
+                <a href="#" target="_blank" title="Instagram"><i class="fab fa-instagram"></i></a>
+            </div>
+
+            <div class="logout-container">
+                <button id="logout" class="btn btn-primary">
+                    <i class="fas fa-sign-out-alt me-2"></i> Logout
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        // Import Firebase
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+        import { getDatabase, ref, get, update } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+        import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-storage.js";
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyALYm1R6zLm_zTT400fQVx5BN-YANO7d14",
+            authDomain: "digielev8-c2919.firebaseapp.com",
+            databaseURL: "https://digielev8-c2919-default-rtdb.firebaseio.com",
+            projectId: "digielev8-c2919",
+            storageBucket: "digielev8-c2919.appspot.com",
+            messagingSenderId: "708873716626",
+            appId: "1:708873716626:web:85f062775842abf66b774b",
+            measurementId: "G-7LL60Y6C1N"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const database = getDatabase(app);
+        const storage = getStorage(app);
+
+        let isEditing = false;
+        let currentUserData = {};
+        let authInitialized = false;
+
+        // Show loading
+        function showLoading() {
+            document.getElementById('loadingProfile').style.display = 'block';
+        }
+
+        // Hide loading
+        function hideLoading() {
+            document.getElementById('loadingProfile').style.display = 'none';
+        }
+
+        // Show status message
+        function showStatus(message, isError = false) {
+            const statusEl = document.getElementById('statusMessage');
+            statusEl.textContent = message;
+            statusEl.classList.remove('success', 'error');
+            statusEl.classList.add(isError ? 'error' : 'success');
+            statusEl.style.display = 'block';
+            
+            // Auto hide after 3 seconds
+            setTimeout(() => {
+                statusEl.style.display = 'none';
+            }, 3000);
+        }
+
+        // Check if user is logged in
+        onAuthStateChanged(auth, async (user) => {
+            authInitialized = true;
+            hideLoading();
+            
+            if (user) {
+                console.log("User is logged in:", user.email);
+                const userId = user.uid;
+                const userRef = ref(database, 'users/' + userId);
+
+                try {
+                    showLoading();
+                    const snapshot = await get(userRef);
+                    hideLoading();
+                    
+                    if (snapshot.exists()) {
+                        currentUserData = snapshot.val();
+                        document.getElementById("businessName").textContent = currentUserData.businessName || "Business Name";
+                        document.getElementById("email").textContent = user.email;
+                        updateViewFields(currentUserData);
+
+                        if (currentUserData.profileImage) {
+                            document.getElementById('profileImage').src = currentUserData.profileImage;
+                        }
+                    } else {
+                        // Create default user data if it doesn't exist
+                        const defaultUserData = {
+                            businessName: "Business Name",
+                            bio: "",
+                            phone: "",
+                            location: ""
+                        };
+                        
+                        await update(ref(database, 'users/' + userId), defaultUserData);
+                        currentUserData = defaultUserData;
+                        updateViewFields(currentUserData);
+                    }
+                } catch (error) {
+                    console.error("Error fetching user data:", error);
+                    showStatus("Error loading profile data. Please try again.", true);
+                }
+            } else {
+                console.log("No user is logged in, redirecting to login page.");
+                window.location.href = "/new_3/public/sign_log/login.html";
+            }
+        });
+
+        // Add a timeout to check if auth is initialized
+        setTimeout(() => {
+            if (!authInitialized) {
+                // If after 5 seconds there's no auth response, try to redirect
+                console.log("Auth timed out, redirecting to login.");
+                window.location.href = "/new_3/public/sign_log/login.html";
+            }
+        }, 5000);
+
+        // Profile image upload handler
+        document.getElementById('profileImageUpload').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                try {
+                    showLoading();
+                    const storageReference = storageRef(storage, `profileImages/${auth.currentUser.uid}`);
+                    await uploadBytes(storageReference, file);
+                    const downloadURL = await getDownloadURL(storageReference);
+                    
+                    await update(ref(database, 'users/' + auth.currentUser.uid), {
+                        profileImage: downloadURL
+                    });
+                    
+                    document.getElementById('profileImage').src = downloadURL;
+                    showStatus("Profile picture updated successfully!");
+                } catch (error) {
+                    console.error("Error uploading image:", error);
+                    showStatus("Failed to upload profile picture. Please try again.", true);
+                } finally {
+                    hideLoading();
+                }
+            }
+        });
+
+        // Edit/Save toggle
+        document.getElementById('toggleEdit').addEventListener('click', async () => {
+            isEditing = !isEditing;
+            toggleEditMode(isEditing);
+            
+            if (!isEditing) {
+                const updatedData = {
+                    bio: document.getElementById('bioEdit').value,
+                    phone: document.getElementById('phoneEdit').value,
+                    location: document.getElementById('locationEdit').value
+                };
+                
+                try {
+                    showLoading();
+                    await update(ref(database, 'users/' + auth.currentUser.uid), updatedData);
+                    currentUserData = { ...currentUserData, ...updatedData };
+                    updateViewFields(currentUserData);
+                    showStatus("Profile updated successfully!");
+                } catch (error) {
+                    console.error("Error updating data:", error);
+                    showStatus("Failed to update profile. Please try again.", true);
+                } finally {
+                    hideLoading();
+                }
+            }
+        });
+
+        // Logout function
+        document.getElementById("logout").addEventListener("click", async () => {
+            try {
+                showLoading();
+                await signOut(auth);
+                window.location.href = "/new_3/public/sign_log/login.html";
+            } catch (error) {
+                console.error("Error signing out:", error);
+                showStatus("Failed to logout. Please try again.", true);
+                hideLoading();
+            }
+        });
+
+        function toggleEditMode(editing) {
+            const toggleButton = document.getElementById('toggleEdit');
+            toggleButton.innerHTML = editing ? 
+                '<i class="fas fa-save me-1"></i> Save' : 
+                '<i class="fas fa-edit me-1"></i> Edit';
+            
+            document.getElementById('bioView').style.display = editing ? 'none' : 'block';
+            document.getElementById('bioEdit').style.display = editing ? 'block' : 'none';
+            document.getElementById('phoneView').style.display = editing ? 'none' : 'inline';
+            document.getElementById('phoneEdit').style.display = editing ? 'inline-block' : 'none';
+            document.getElementById('locationView').style.display = editing ? 'none' : 'inline';
+            document.getElementById('locationEdit').style.display = editing ? 'inline-block' : 'none';
+
+            if (editing) {
+                document.getElementById('bioEdit').value = currentUserData.bio || '';
+                document.getElementById('phoneEdit').value = currentUserData.phone || '';
+                document.getElementById('locationEdit').value = currentUserData.location || '';
+            }
+        }
+
+        function updateViewFields(data) {
+            document.getElementById('bioView').textContent = data.bio || "No bio available. Click 'Edit' to add one.";
+            document.getElementById('phoneView').textContent = data.phone || "Not provided";
+            document.getElementById('locationView').textContent = data.location || "Not provided";
+        }
+
+        // Add fallback if image loading fails
+        document.getElementById('profileImage').addEventListener('error', function() {
+            this.src = 'https://via.placeholder.com/120';
+        });
+    </script>
+</body>
+</html>

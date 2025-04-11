@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Page</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f0f2f5;
+            overflow: hidden;
+        }
+
+        .container {
+            position: relative;
+            width: 800px;
+            height: 500px;
+            background: #fff;
+            border-radius: 20px;
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .toggle-box {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+
+        .toggle-box::before {
+            content: '';
+            position: absolute;
+            left: -250%;
+            width: 300%;
+            height: 100%;
+            background: #7494ec;
+            border-radius: 150px;
+            z-index: 2;
+            transition: 1.8s ease-in-out;
+        }
+
+        .form-container {
+            position: absolute;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+        }
+
+        .form-section {
+            position: relative;
+            width: 50%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 3;
+        }
+
+        .welcome-section {
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .welcome-section h2 {
+            font-size: 2.2em;
+            margin-bottom: 15px;
+        }
+
+        .welcome-section p {
+            font-size: 1em;
+            margin-bottom: 20px;
+        }
+
+        .login-section {
+            padding: 40px;
+        }
+
+        .login-section h2 {
+            font-size: 2em;
+            color: #333;
+            margin-bottom: 30px;
+        }
+
+        .login-form {
+            width: 100%;
+        }
+
+        .input-field {
+            position: relative;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .input-field input {
+            width: 100%;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            outline: none;
+            font-size: 1em;
+        }
+
+        .input-field input:focus {
+            border-color: #7494ec;
+        }
+
+        .login-form .forgot-password {
+            display: block;
+            text-align: right;
+            margin-bottom: 20px;
+            color: #666;
+            text-decoration: none;
+            font-size: 0.9em;
+        }
+
+        .login-form .forgot-password:hover {
+            color: #7494ec;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            background: #7494ec;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+
+        .btn:hover {
+            background: #5a76c7;
+        }
+
+        .btn.register {
+            background: transparent;
+            border: 2px solid white;
+            width: auto;
+            padding: 10px 30px;
+        }
+
+        .social-login {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .social-login p {
+            margin-bottom: 15px;
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .social-icons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .social-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 1px solid #ddd;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .social-icon:hover {
+            border-color: #7494ec;
+            background: #f5f7ff;
+        }
+
+        .social-icon img {
+            width: 20px;
+            height: 20px;
+        }
+
+        /* Icon styles for social buttons */
+        .icon-google::before {
+            content: "G";
+        }
+        
+        .icon-facebook::before {
+            content: "f";
+        }
+        
+        .icon-github::before {
+            content: "G";
+        }
+        
+        .icon-linkedin::before {
+            content: "in";
+        }
+    </style>
+    <!-- Google API -->
+    <script src="https://apis.google.com/js/platform.js" async defer></script>
+    <meta name="google-signin-client_id" content="YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com">
+    <!-- Facebook SDK -->
+    <script async defer crossorigin="anonymous" src="https://connect.facebook.net/en_US/sdk.js#xfbml=1&version=v12.0&appId=YOUR_FACEBOOK_APP_ID&autoLogAppEvents=1" nonce="YOUR_NONCE"></script>
+    <!-- GitHub SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@github/webauthn-json@0.4.1/dist/browser/webauthn-json.js"></script>
+    <!-- LinkedIn SDK -->
+    <script src="https://platform.linkedin.com/in.js" type="text/javascript">api_key: YOUR_LINKEDIN_API_KEY</script>
+</head>
+<body>
+    <div class="container">
+        <div class="toggle-box"></div>
+        <div class="form-container">
+            <div class="form-section welcome-section">
+                <h2>Hello, Welcome!</h2>
+                <p>Don't have an account?</p>
+                <button class="btn register">Register</button>
+            </div>
+            <div class="form-section login-section">
+                <h2>Login</h2>
+                <form class="login-form">
+                    <div class="input-field">
+                        <input type="email" id="email" placeholder="Email">
+                    </div>
+                    <div class="input-field">
+                        <input type="password" id="password" placeholder="Password">
+                    </div>
+                    <a href="#" class="forgot-password">Forgot Password?</a>
+                    <button type="submit" class="btn login">Login</button>
+                </form>
+                <div class="social-login">
+                    <p>or login with social platforms</p>
+                    <div class="social-icons">
+                        <div class="social-icon" id="google-signin">
+                            <span class="icon-google">G</span>
+                        </div>
+                        <div class="social-icon" id="facebook-signin">
+                            <span class="icon-facebook">f</span>
+                        </div>
+                        <div class="social-icon" id="github-signin">
+                            <span class="icon-github">G</span>
+                        </div>
+                        <div class="social-icon" id="linkedin-signin">
+                            <span class="icon-linkedin">in</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" defer>
+        // Import Firebase
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyALYm1R6zLm_zTT400fQVx5BN-YANO7d14",
+            authDomain: "digielev8-c2919.firebaseapp.com",
+            projectId: "digielev8-c2919",
+            storageBucket: "digielev8-c2919.firebasestorage.app",
+            messagingSenderId: "708873716626",
+            appId: "1:708873716626:web:85f062775842abf66b774b",
+            measurementId: "G-7LL60Y6C1N"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const loginForm = document.querySelector(".login-form");
+            loginForm.addEventListener("submit", async (event) => {
+                event.preventDefault();
+                
+                const email = document.getElementById("email").value;
+                const password = document.getElementById("password").value;
+                
+                try {
+                    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                    alert("Login successful! Redirecting to dashboard.");
+                    window.location.href = "/new_3/public/dashboard.html"; // Change to the actual dashboard URL
+                } catch (error) {
+                    alert("Error: " + error.message);
+                }
+            });
+        });
+    </script>
+
+    <script>
+        // Google Sign-In
+        function onGoogleSignIn(googleUser) {
+            const profile = googleUser.getBasicProfile();
+            console.log('ID: ' + profile.getId());
+            console.log('Name: ' + profile.getName());
+            console.log('Email: ' + profile.getEmail());
+            // Send this data to your server for login
+        }
+
+        document.getElementById('google-signin').addEventListener('click', function() {
+            gapi.auth2.getAuthInstance().signIn().then(onGoogleSignIn);
+        });
+
+        // Facebook Sign-In
+        document.getElementById('facebook-signin').addEventListener('click', function() {
+            FB.login(function(response) {
+                if (response.authResponse) {
+                    FB.api('/me', {fields: 'name,email'}, function(response) {
+                        console.log('Name: ' + response.name);
+                        console.log('Email: ' + response.email);
+                        // Send this data to your server for login
+                    });
+                }
+            }, {scope: 'public_profile,email'});
+        });
+
+        // GitHub Sign-In
+        document.getElementById('github-signin').addEventListener('click', function() {
+            window.location.href = 'https://github.com/login/oauth/authorize?client_id=YOUR_GITHUB_CLIENT_ID&scope=user';
+        });
+
+        // LinkedIn Sign-In
+        document.getElementById('linkedin-signin').addEventListener('click', function() {
+            window.location.href = 'https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=YOUR_LINKEDIN_CLIENT_ID&redirect_uri=YOUR_REDIRECT_URI&state=YOUR_STATE&scope=r_liteprofile%20r_emailaddress';
+        });
+
+        // Get the register button
+        const registerBtn = document.querySelector('.btn.register');
+        
+        // Add event listener to redirect to the registration page
+        registerBtn.addEventListener('click', function() {
+            window.location.href ="/new_3/public/sign_log/signup.html"; // Replace with your registration page URL
+        });
+    </script>
+</body>
+</html>

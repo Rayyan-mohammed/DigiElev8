@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Business Dashboard</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome for Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { 
+            font-family: 'Arial', sans-serif; 
+            background-color: #f4f6f9; 
+        }
+        .navbar {
+            background-color: #2c3e50;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .navbar-brand {
+            color: #ffffff !important;
+            font-weight: bold;
+        }
+        .navbar-nav .nav-link {
+            color: #ffffff !important;
+            margin-right: 15px;
+            transition: all 0.3s ease;
+        }
+        .navbar-nav .nav-link:hover {
+            color: #3498db !important;
+            transform: scale(1.05);
+        }
+        .dropdown-menu {
+            background-color: #34495e;
+        }
+        .dropdown-item {
+            color: #ffffff !important;
+        }
+        .dropdown-item:hover {
+            background-color: #2c3e50;
+        }
+        .modal-content {
+            background-color: #f4f6f9;
+        }
+        .chart-container { 
+            background: white; 
+            padding: 20px; 
+            border-radius: 10px; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1); 
+            margin-bottom: 20px;
+        }
+        .footer {
+            background-color: #2c3e50;
+            color: #ffffff;
+            padding: 40px 0;
+            margin-top: 40px;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .footer h5 {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #3498db;
+        }
+
+        .footer p {
+            font-size: 14px;
+            line-height: 1.6;
+            color: #bdc3c7;
+        }
+
+        .footer ul.list-unstyled {
+            padding-left: 0;
+            list-style: none;
+        }
+
+        .footer ul.list-unstyled li {
+            margin-bottom: 10px;
+        }
+
+        .footer ul.list-unstyled li a {
+            color: #bdc3c7;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .footer ul.list-unstyled li a:hover {
+            color: #3498db;
+        }
+
+        .footer ul.list-unstyled li a i {
+            margin-right: 8px;
+            color: #3498db;
+        }
+
+        .footer hr {
+            border-color: rgba(255, 255, 255, 0.1);
+            margin: 20px 0;
+        }
+
+        .footer .text-center p {
+            font-size: 14px;
+            color: #bdc3c7;
+            margin-bottom: 0;
+        }
+
+        .footer .text-center p a {
+            color: #3498db;
+            text-decoration: none;
+        }
+
+        .footer .text-center p a:hover {
+            text-decoration: underline;
+        }
+
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">DigiElev8</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#dashboard">
+                            <i class="fas fa-chart-line"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                            <i class="fas fa-box-open"></i> Inventory
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="/new_3/public/inventary/add_inventory.html">Add Inventory</a></li>
+                            <li><a class="dropdown-item" href="/new_3/public/inventary/manage_inventory.html">Manage Inventory</a></li>
+                            <li><a class="dropdown-item" href="/new_3/public/inventary/inventory_suggestions.html">Inventory Suggestions</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                            <i class="fas fa-shopping-cart"></i> Sales
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="/new_3/public/sales/add_sales.html">Add Sales</a></li>
+                            <li><a class="dropdown-item" href="/new_3/public/sales/sales_data.html">Sales Data</a></li>
+                            <li><a class="dropdown-item" href="/new_3/public/sales/daily_sales.html">Daily Sales</a></li>
+                            <li><a class="dropdown-item" href="/new_3/public/sales/monthly_sales.html">Monthly Sales</a></li>
+                            <li><a class="dropdown-item" href="/new_3/public/sales/sales_report.html">Generate Report</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                            <i class="fas fa-coins"></i>Analytics
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="/new_3/public/analytics/inventory_analytics.html">Inventory Analysis</a></li>
+                            <li><a class="dropdown-item" href="/new_3/public/analytics/sales_analysis.html">Sales Analysis</a></li>
+                            <li><a class="dropdown-item" href="/new_3/public/analytics/profit_analytics.html">Profit Analysis</a></li>
+                        </ul>
+                    </li>
+                    <!-- New Dropdown for Budget & Cost Analysis -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                            <i class="fas fa-calculator"></i> Budget & Cost
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="/new_3/public/budget/manage_budget.html">Manage Budget</a></li>
+                            <li><a class="dropdown-item" href="/new_3/public/budget/cost_analysis.html">Cost Analysis</a></li>
+                        </ul>
+                    </li>
+                    <!-- New Dropdown for Demand Prediction -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                            <i class="fas fa-chart-pie"></i> Demand Prediction
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="/new_3/public/demand/prediction_dashboard.html">Prediction Dashboard</a></li>
+                            <li><a class="dropdown-item" href="/new_3/public/demand/demand_trends.html">Demand Trends</a></li>
+                        </ul>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/new_3/public/profile/profile.html">
+                            <i class="fas fa-user"></i> Profile
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Section -->
+    <div class="container">
+        <h1 class="page-title">Welcome to Your Dashboard</h1>
+        <p>Manage your inventory, track sales, and analyze profits from this dashboard.</p>
+
+        <div class="row">
+            <!-- Inventory Analytics -->
+            <div class="col-md-4">
+                <div class="chart-container">
+                    <h5>Inventory Analytics</h5>
+                    <canvas id="inventoryChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Sales Analytics -->
+            <div class="col-md-4">
+                <div class="chart-container">
+                    <h5>Sales Analytics</h5>
+                    <canvas id="salesChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Profit Analytics -->
+            <div class="col-md-4">
+                <div class="chart-container">
+                    <h5>Profit Analytics</h5>
+                    <canvas id="profitChart"></canvas>
+                </div>
+                <br>
+                <br>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <h5>DigiElev8</h5>
+                    <p>Empowering businesses with smart digital solutions for sustainable growth and success.</p>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <h5>Quick Links</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a href="#"><i class="fas fa-chevron-right me-2"></i>Dashboard</a></li>
+                        <li class="mb-2"><a href="#"><i class="fas fa-chevron-right me-2"></i>Inventory</a></li>
+                        <li class="mb-2"><a href="#"><i class="fas fa-chevron-right me-2"></i>Sales</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <h5>Contact Info</h5>
+                    <p><i class="fas fa-envelope me-2"></i>DigiElev8.contact@gmail.com</p>
+                    <p><i class="fas fa-phone me-2"></i>+91 7386006448</p>
+                </div>
+            </div>
+            <hr class="mt-4 mb-4" style="border-color: rgba(255,255,255,0.1);">
+            <div class="text-center">
+                <p class="mb-0">&copy; 2025 DigiElev8. All Rights Reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript for Charts -->
+    <script>
+        function loadInventoryChart() {
+            let inventoryData = JSON.parse(localStorage.getItem('inventoryData') || '[]');
+            let labels = inventoryData.map(item => item.name);
+            let stockLevels = inventoryData.map(item => item.quantity);
+
+            new Chart(document.getElementById('inventoryChart').getContext('2d'), {
+                type: 'bar',
+                data: { labels, datasets: [{ label: 'Stock Levels', data: stockLevels, backgroundColor: 'rgba(59, 130, 246, 0.7)' }] }
+            });
+        }
+
+        function loadSalesChart() {
+            let salesData = JSON.parse(localStorage.getItem('salesHistory') || '[]');
+            let labels = salesData.map(sale => sale.productName);
+            let salesValues = salesData.map(sale => sale.totalSales);
+
+            new Chart(document.getElementById('salesChart').getContext('2d'), {
+                type: 'line',
+                data: { labels, datasets: [{ label: 'Total Sales', data: salesValues, backgroundColor: 'rgba(16, 185, 129, 0.7)' }] }
+            });
+        }
+
+        function loadProfitChart() {
+            let profitData = JSON.parse(localStorage.getItem('salesHistory') || '[]');
+            let labels = profitData.map(sale => sale.productName);
+            let profitValues = profitData.map(sale => (sale.salesPrice - sale.inventoryPrice) * sale.quantitySold);
+
+            new Chart(document.getElementById('profitChart').getContext('2d'), {
+                type: 'doughnut',
+                data: { labels, datasets: [{ label: 'Profit', data: profitValues, backgroundColor: ['#f59e0b', '#84cc16', '#ec4899', '#3b82f6', '#ef4444'] }] }
+            });
+        }
+
+        loadInventoryChart();
+        loadSalesChart();
+        loadProfitChart();
+    </script>
+
+    <!-- Bootstrap JS and Dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

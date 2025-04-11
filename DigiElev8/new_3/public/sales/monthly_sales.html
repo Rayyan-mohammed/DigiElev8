@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monthly Sales Report</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f9;
+        }
+        .container {
+            margin-top: 30px;
+            background-color: #ffffff;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+        }
+        h1 {
+            text-align: center;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        /* 3D Animated Stats Cards */
+        .stat-card {
+            background-color: #ffffff;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            border: 2px solid #2c3e50;
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease-in-out;
+        }
+        .stat-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 12px 25px rgba(0, 0, 0, 0.25);
+        }
+        .stat-card h2 {
+            font-size: 22px;
+            color: #2c3e50;
+        }
+        .stat-card p {
+            font-size: 20px;
+            font-weight: bold;
+            color: #000;
+        }
+
+        /* Table Styling */
+        table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        th, td {
+            padding: 12px;
+            text-align: center;
+            border: 1px solid #ddd;
+        }
+        th {
+            background-color: #2c3e50;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        tr:hover {
+            background-color: #e3f2fd;
+            transition: 0.3s;
+        }
+
+        /* Month Picker & Button */
+        .month-picker {
+            display: block;
+            width: 250px;
+            margin: 15px auto;
+            padding: 8px;
+            border-radius: 8px;
+            border: 2px solid #2c3e50;
+            font-size: 16px;
+        }
+        
+        .download-btn {
+            background: linear-gradient(45deg, #2c3e50, #2c3e50);
+            color: white;
+            border-radius: 12px;
+            padding: 12px 25px;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            transition: transform 0.3s ease-in-out;
+        }
+        .download-btn:hover {
+            transform: scale(1.1);
+            background: linear-gradient(45deg, #0056b3, #004494);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Monthly Sales Report</h1>
+
+        <!-- Stats Section with 3D Cards -->
+        <div class="row mb-4">
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="stat-card">
+                    <h2>Total Sales</h2>
+                    <p id="total-sales">0</p>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="stat-card">
+                    <h2>Total Profit</h2>
+                    <p id="total-profit">0</p>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="stat-card">
+                    <h2>Average Sale</h2>
+                    <p id="average-sale">0</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Month Picker -->
+        <div class="text-center">
+            <label for="sales-month"><b>Select Month:</b></label>
+            <input type="month" id="sales-month" class="month-picker" onchange="filterMonthlySales()">
+        </div>
+
+        <!-- Sales Table -->
+        <table id="monthly-sales-table">
+            <thead>
+                <tr>
+                    <th>Product Name</th>
+                    <th>Inventory Price</th>
+                    <th>Sales Price</th>
+                    <th>Quantity Sold</th>
+                    <th>Total Sale Price</th>
+                    <th>Profit per unit</th>
+                    <th>Total Profit</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody id="monthly-sales-body"></tbody>
+        </table>
+
+        <!-- Download Excel Button -->
+        <div class="text-center mt-4">
+            <button class="download-btn" onclick="downloadMonthlySales()">Download Excel</button>
+        </div>
+    </div>
+
+    <script>
+        let salesHistory = JSON.parse(localStorage.getItem('salesHistory') || '[]');
+
+        function filterMonthlySales() {
+            const selectedMonth = document.getElementById('sales-month').value;
+            const monthlySalesBody = document.getElementById('monthly-sales-body');
+            monthlySalesBody.innerHTML = '';
+
+            let totalSales = 0, totalProfit = 0, totalItems = 0;
+
+            salesHistory.filter(sale => sale.date.startsWith(selectedMonth)).forEach(sale => {
+                totalSales += sale.totalSales;
+                totalProfit += (sale.salesPrice - sale.inventoryPrice) * sale.quantitySold;
+                totalItems += sale.quantitySold;
+
+                const row = monthlySalesBody.insertRow();
+                row.innerHTML = `
+                    <td>${sale.productName}</td>
+                    <td>${sale.inventoryPrice}</td>
+                    <td>${sale.salesPrice}</td>
+                    <td>${sale.quantitySold}</td>
+                    <td>${sale.totalSales.toFixed(2)}</td>
+                    <td>${(sale.salesPrice - sale.inventoryPrice).toFixed(2)}</td>
+                    <td>${(sale.totalSales - (sale.inventoryPrice * sale.quantitySold)).toFixed(2)}</td>
+                    <td>${sale.date}</td>
+                `;
+            });
+
+            document.getElementById("total-sales").innerText = totalSales.toFixed(2);
+            document.getElementById("total-profit").innerText = totalProfit.toFixed(2);
+            document.getElementById("average-sale").innerText = totalItems > 0 ? (totalSales / totalItems).toFixed(2) : "0";
+        }
+
+        function downloadMonthlySales() {
+            let csvContent = "data:text/csv;charset=utf-8,Product Name,Inventory Price,Sales Price,Quantity Sold,Total Sales,Profit per unit,Total Profit,Date\n";
+
+            salesHistory.forEach(sale => {
+                csvContent += `${sale.productName},${sale.inventoryPrice},${sale.salesPrice},${sale.quantitySold},${sale.totalSales.toFixed(2)},${(sale.salesPrice - sale.inventoryPrice).toFixed(2)},${(sale.totalSales - (sale.inventoryPrice * sale.quantitySold)).toFixed(2)},${sale.date}\n`;
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.href = encodedUri;
+            link.download = "monthly_sales.csv";
+            link.click();
+        }
+
+        window.onload = function() {
+            document.getElementById('sales-month').value = new Date().toISOString().slice(0, 7);
+            filterMonthlySales();
+        };
+    </script>
+
+</body>
+</html>

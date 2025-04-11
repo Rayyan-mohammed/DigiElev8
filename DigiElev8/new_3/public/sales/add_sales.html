@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Sales</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #e9ecef;
+            margin: 0;
+            padding: 0;
+        }
+        h1 {
+            text-align: center;
+            margin-top: 20px;
+        }
+        form {
+            background-color: white;
+            width: 50%;
+            margin: 20px auto;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        label {
+            display: block;
+            margin: 10px 0 5px;
+            font-weight: bold;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+        }
+        input[disabled] {
+            background-color: #f9f9f9;
+        }
+        .error-message {
+            color: #dc3545;
+            font-size: 14px;
+            margin-top: 5px;
+            display: none;
+        }
+        .success-message {
+            color: #28a745;
+            font-size: 14px;
+            margin-top: 10px;
+            text-align: center;
+            display: none;
+        }
+        input.error {
+            border-color: #dc3545;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        #back-btn {
+            display: block;
+            width: 200px;
+            margin: 20px auto;
+            padding: 10px;
+            text-align: center;
+            background-color: #2c3e50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+        }
+        #back-btn:hover {
+            background-color: #34495e;
+        }
+    </style>
+</head>
+<body>
+    <h1>Add Sales</h1>
+    <form id="sales-form" novalidate>
+        <label for="product-name">Product Name:</label>
+        <input type="text" id="product-name" list="inventory-list" placeholder="Select or type product" required>
+        <div id="product-name-error" class="error-message">Please select a valid product</div>
+        <datalist id="inventory-list">
+            <!-- Inventory options will be dynamically populated here -->
+        </datalist>
+
+        <label for="inventory-price">Inventory Price:</label>
+        <input type="number" id="inventory-price" disabled placeholder="Auto-filled from inventory">
+
+        <label for="sales-price">Sales Price:</label>
+        <input type="number" id="sales-price" required placeholder="Enter sales price" min="0" step="0.01">
+        <div id="sales-price-error" class="error-message">Please enter a valid sales price</div>
+
+        <label for="quantity-sold">Quantity Sold:</label>
+        <input type="number" id="quantity-sold" required placeholder="Enter quantity sold" min="1">
+        <div id="quantity-sold-error" class="error-message">Please enter a valid quantity</div>
+
+        <div id="success-message" class="success-message" style="display: none;">Item Successfully Added!</div>
+        <button type="submit">Add Sale</button>
+    </form>
+
+    <button id="back-btn" onclick="window.location.href='sales_data.html'">Back to Sales Data</button>
+
+    <script>
+        let inventoryData = JSON.parse(localStorage.getItem('inventoryData') || '[]');
+        const productNameInput = document.getElementById('product-name');
+        const inventoryPriceInput = document.getElementById('inventory-price');
+        const salesPriceInput = document.getElementById('sales-price');
+        const quantitySoldInput = document.getElementById('quantity-sold');
+
+        // Populate the product dropdown
+        inventoryData.forEach(item => {
+            const option = document.createElement('option');
+            option.value = item.name;
+            document.getElementById('inventory-list').appendChild(option);
+        });
+
+        // Validation functions
+        function showError(input, message) {
+            input.classList.add('error');
+            const errorDiv = document.getElementById(`${input.id}-error`);
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+
+        function hideError(input) {
+            input.classList.remove('error');
+            const errorDiv = document.getElementById(`${input.id}-error`);
+            errorDiv.style.display = 'none';
+        }
+
+        function validateProduct() {
+            const selectedProduct = inventoryData.find(item => 
+                item.name.toLowerCase() === productNameInput.value.toLowerCase()
+            );
+            if (!selectedProduct) {
+                showError(productNameInput, 'Please select a valid product');
+                return false;
+            }
+            hideError(productNameInput);
+            return true;
+        }
+
+        function validateSalesPrice() {
+            const price = parseFloat(salesPriceInput.value);
+            if (isNaN(price) || price <= 0) {
+                showError(salesPriceInput, 'Please enter a valid sales price');
+                return false;
+            }
+            hideError(salesPriceInput);
+            return true;
+        }
+
+        function validateQuantity() {
+            const quantity = parseInt(quantitySoldInput.value);
+            const selectedProduct = inventoryData.find(item => 
+                item.name.toLowerCase() === productNameInput.value.toLowerCase()
+            );
+            
+            if (isNaN(quantity) || quantity <= 0) {
+                showError(quantitySoldInput, 'Please enter a valid quantity');
+                return false;
+            }
+            
+            if (selectedProduct && quantity > selectedProduct.quantity) {
+                showError(quantitySoldInput, 'Quantity exceeds available inventory');
+                return false;
+            }
+            
+            hideError(quantitySoldInput);
+            return true;
+        }
+
+        // Auto-fill inventory price
+        productNameInput.addEventListener('input', function() {
+            const selectedProduct = inventoryData.find(item => 
+                item.name.toLowerCase() === productNameInput.value.toLowerCase()
+            );
+            if (selectedProduct) {
+                inventoryPriceInput.value = selectedProduct.price;
+                hideError(productNameInput);
+            } else {
+                inventoryPriceInput.value = '';
+            }
+        });
+
+        // Live validation
+        productNameInput.addEventListener('blur', validateProduct);
+        salesPriceInput.addEventListener('input', validateSalesPrice);
+        quantitySoldInput.addEventListener('input', validateQuantity);
+
+        // Form submission
+        document.getElementById('sales-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Validate all fields
+            const isProductValid = validateProduct();
+            const isPriceValid = validateSalesPrice();
+            const isQuantityValid = validateQuantity();
+
+            if (isProductValid && isPriceValid && isQuantityValid) {
+                const selectedProduct = inventoryData.find(item => 
+                    item.name.toLowerCase() === productNameInput.value.toLowerCase()
+                );
+                
+                const salesData = {
+                    productName: selectedProduct.name,
+                    inventoryPrice: selectedProduct.price,
+                    salesPrice: parseFloat(salesPriceInput.value),
+                    quantitySold: parseInt(quantitySoldInput.value),
+                    totalSales: parseFloat(salesPriceInput.value) * parseInt(quantitySoldInput.value),
+                    date: new Date().toISOString().split('T')[0]
+                };
+
+                // Save sales data
+                const salesHistory = JSON.parse(localStorage.getItem('salesHistory') || '[]');
+                salesHistory.push(salesData);
+                localStorage.setItem('salesHistory', JSON.stringify(salesHistory));
+
+                // Update inventory quantity
+                selectedProduct.quantity -= salesData.quantitySold;
+                localStorage.setItem('inventoryData', JSON.stringify(inventoryData));
+
+                // Show success message
+                const successMessage = document.getElementById('success-message');
+                successMessage.style.display = 'block';
+
+                // Optionally, clear the form after a short delay
+                setTimeout(() => {
+                    successMessage.style.display = 'none';
+                    window.location.href = 'sales_data.html';
+                }, 2000); // Redirect after 2 seconds
+            }
+        });
+    </script>
+</body>
+</html>

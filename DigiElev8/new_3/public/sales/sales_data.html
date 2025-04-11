@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sales Data</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+        }
+        .search-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 20px 0;
+            gap: 10px;
+        }
+        #search-bar {
+            width: 30%;
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background-color: #1a1a1a;
+            padding: 20px;
+            border-radius: 8px;
+            width: 400px;
+            color: white;
+        }
+        .modal-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .modal-buttons button {
+            padding: 8px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            width: auto;
+            margin: 0;
+        }
+        .modal-buttons .ok-btn {
+            background-color: #b19cd9;
+            color: black;
+        }
+        .modal-buttons .cancel-btn {
+            background-color: transparent;
+            color: white;
+            border: 1px solid #555;
+        }
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #2c3e50;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 4px;
+            display: none;
+            z-index: 1000;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        .notification button {
+            background-color: #f0b137;
+            color: black;
+            border: none;
+            padding: 5px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-left: 10px;
+            width: auto;
+            display: inline;
+        }
+        h1 {
+            text-align: center;
+            margin-top: 40px;
+            color: #333;
+        }
+        table {
+            width: 85%;
+            margin: 20px auto;
+            border-collapse: collapse;
+            background-color: #fff;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        th, td {
+            padding: 12px;
+            text-align: center;
+            border: 1px solid #ccc;
+        }
+        th {
+            background-color: #2c3e50;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        tr:hover {
+            background-color: #d9f9d9;
+        }
+        .container {
+            width: 80%;
+            margin: 0 auto;
+        }
+        .buttons {
+            text-align: center;
+        }
+        button {
+            width: 200px;
+            margin: 20px auto;
+            padding: 12px;
+            background-color: #2c3e50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            display: block;
+        }
+        #clear-btn {
+            background-color: #f44336;
+        }
+        #download-btn {
+            background-color: #45a049;
+        }
+        #delete-btn {
+            background-color: #f44336;
+            padding: 8px 16px;
+            width: auto;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Sales Data</h1>
+
+    <div class="search-container">
+        <input type="text" id="search-bar" placeholder="Search product..." oninput="searchSales()">
+    </div>
+
+    <div class="container">
+        <table id="sales-table">
+            <thead>
+                <tr>
+                    <th>Product Name</th>
+                    <th>Inventory Price</th>
+                    <th>Sales Price</th>
+                    <th>Quantity Sold</th>
+                    <th>Total Sale Price</th>
+                    <th>Profit per unit</th>
+                    <th>Total Profit</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="sales-body"></tbody>
+        </table>
+
+        <div class="buttons">
+            <button onclick="window.location.href='add_sales.html'">Add Sales</button>
+            <button id="clear-btn" onclick="showClearConfirmation()">Clear All Sales</button>
+            <button id="download-btn" onclick="downloadCSV()">Download Sales Data</button>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirmModal" class="modal-overlay">
+        <div class="modal-content">
+            <div>127.0.0.1:5500 says</div>
+            <p id="modal-message"></p>
+            <div class="modal-buttons">
+                <button class="ok-btn" onclick="handleModalConfirm()">OK</button>
+                <button class="cancel-btn" onclick="closeModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Notification -->
+    <div class="notification" id="notification">
+        <span>Item deleted.</span>
+        <button onclick="undoDelete()">UNDO</button>
+    </div>
+
+    <script>
+        let salesHistory = JSON.parse(localStorage.getItem('salesHistory') || '[]');
+        let deletedItem = null;
+        let deletedItemIndex = null;
+        let currentModalCallback = null;
+
+        function showModal(message, callback) {
+            document.getElementById('modal-message').textContent = message;
+            document.getElementById('confirmModal').style.display = 'flex';
+            currentModalCallback = callback;
+        }
+
+        function closeModal() {
+            document.getElementById('confirmModal').style.display = 'none';
+            currentModalCallback = null;
+        }
+
+        function handleModalConfirm() {
+            if (currentModalCallback) {
+                currentModalCallback();
+            }
+            closeModal();
+        }
+
+        function showClearConfirmation() {
+            showModal('Are you sure you want to clear the entire sales data?', clearSales);
+        }
+
+        function showDeleteConfirmation(index) {
+            showModal('Are you sure you want to delete this item?', () => performDelete(index));
+        }
+
+        function renderSalesData() {
+            const salesBody = document.getElementById('sales-body');
+            salesBody.innerHTML = '';
+
+            salesHistory.forEach((sale, index) => {
+                const profit = parseFloat((sale.salesPrice - sale.inventoryPrice).toFixed(2));
+                const totalProfit = parseFloat((profit * sale.quantitySold).toFixed(2));
+
+                const row = salesBody.insertRow();
+                row.innerHTML = `
+                    <td>${sale.productName}</td>
+                    <td>Rs ${sale.inventoryPrice.toFixed(2)}</td>
+                    <td>Rs ${sale.salesPrice.toFixed(2)}</td>
+                    <td>${sale.quantitySold}</td>
+                    <td>Rs ${sale.totalSales.toFixed(2)}</td>
+                    <td>Rs ${profit.toFixed(2)}</td>
+                    <td>Rs ${totalProfit.toFixed(2)}</td>
+                    <td>${sale.date}</td>
+                    <td>
+                        <button id="delete-btn" onclick="showDeleteConfirmation(${index})">DELETE</button>
+                    </td>
+                `;
+            });
+        }
+
+        function searchSales() {
+            const searchQuery = document.getElementById('search-bar').value.toLowerCase();
+            const filteredSales = salesHistory.filter(sale => 
+                sale.productName.toLowerCase().includes(searchQuery)
+            );
+            renderFilteredSalesData(filteredSales);
+        }
+
+        function renderFilteredSalesData(filteredSales) {
+            const salesBody = document.getElementById('sales-body');
+            salesBody.innerHTML = '';
+
+            filteredSales.forEach((sale, index) => {
+                const profit = parseFloat((sale.salesPrice - sale.inventoryPrice).toFixed(2));
+                const totalProfit = parseFloat((profit * sale.quantitySold).toFixed(2));
+
+                const row = salesBody.insertRow();
+                row.innerHTML = `
+                    <td>${sale.productName}</td>
+                    <td>Rs ${sale.inventoryPrice.toFixed(2)}</td>
+                    <td>Rs ${sale.salesPrice.toFixed(2)}</td>
+                    <td>${sale.quantitySold}</td>
+                    <td>Rs ${sale.totalSales.toFixed(2)}</td>
+                    <td>Rs ${profit.toFixed(2)}</td>
+                    <td>Rs ${totalProfit.toFixed(2)}</td>
+                    <td>${sale.date}</td>
+                    <td>
+                        <button id="delete-btn" onclick="showDeleteConfirmation(${index})">DELETE</button>
+                    </td>
+                `;
+            });
+        }
+
+        function performDelete(index) {
+            deletedItem = salesHistory[index];
+            deletedItemIndex = index;
+            salesHistory.splice(index, 1);
+            localStorage.setItem('salesHistory', JSON.stringify(salesHistory));
+            renderSalesData();
+            showNotification();
+        }
+
+        function showNotification() {
+            const notification = document.getElementById('notification');
+            notification.style.display = 'block';
+            setTimeout(() => {
+                if (!notification.matches(':hover')) {
+                    notification.style.display = 'none';
+                    deletedItem = null;
+                    deletedItemIndex = null;
+                }
+            }, 5000);
+        }
+
+        function undoDelete() {
+            if (deletedItem && deletedItemIndex !== null) {
+                salesHistory.splice(deletedItemIndex, 0, deletedItem);
+                localStorage.setItem('salesHistory', JSON.stringify(salesHistory));
+                renderSalesData();
+                document.getElementById('notification').style.display = 'none';
+                deletedItem = null;
+                deletedItemIndex = null;
+            }
+        }
+
+        function clearSales() {
+            localStorage.removeItem('salesHistory');
+            salesHistory = [];
+            renderSalesData();
+        }
+
+        function downloadCSV() {
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += "Product Name,Inventory Price,Sales Price,Quantity Sold,Total Sales,Profit per Unit,Total Profit,Date\n";
+
+            salesHistory.forEach(sale => {
+                const profit = parseFloat((sale.salesPrice - sale.inventoryPrice).toFixed(2));
+                const totalProfit = parseFloat((profit * sale.quantitySold).toFixed(2));
+                csvContent += `${sale.productName},Rs ${sale.inventoryPrice.toFixed(2)},Rs ${sale.salesPrice.toFixed(2)},${sale.quantitySold},Rs ${sale.totalSales.toFixed(2)},Rs ${profit.toFixed(2)},Rs ${totalProfit.toFixed(2)},${sale.date}\n`;
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "sales_data.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        renderSalesData();
+    </script>
+    
+</body>
+</html>

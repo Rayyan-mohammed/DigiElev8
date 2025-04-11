@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Inventory Suggestions</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --background-color: #ecf0f1;
+            --text-color: #333;
+            --low-stock-color: #e74c3c;
+            --overstocked-color: #2ecc71;
+        }
+        /* Existing styles */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+        h1 {
+            text-align: center;
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: white;
+            box-shadow: 0 2px 3px rgba(0,0,0,0.1);
+            border-radius: 5px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        th {
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: 600;
+            padding: 12px;
+            text-align: left;
+        }
+        td {
+            padding: 10px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        tr:nth-child(even) {
+            background-color: #f7f9fa;
+        }
+        .low-stock {
+            color: var(--low-stock-color);
+            font-weight: bold;
+        }
+        .overstocked {
+            color: var(--overstocked-color);
+            font-weight: bold;
+        }
+        .button-group {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        .button-group a {
+            flex: 1;
+            margin: 0 5px;
+            text-align: center;
+            padding: 10px;
+            background-color: var(--primary-color);
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: background-color 0.3s ease;
+        }
+        .button-group a:hover {
+            background-color: #1a252f;
+        }
+
+        /* New styles for enhanced features */
+        .settings-panel {
+            background-color: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 3px rgba(0,0,0,0.1);
+        }
+
+        .threshold-controls {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 15px;
+        }
+
+        .threshold-group {
+            flex: 1;
+        }
+
+        .threshold-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+
+        .threshold-group input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .trend-indicator {
+            font-style: italic;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .export-btn {
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .export-btn:hover {
+            background-color: #2980b9;
+        }
+    </style>
+</head>
+<body>
+    <h1>Inventory Suggestions</h1>
+
+    <!-- New Settings Panel -->
+    <div class="settings-panel">
+        <div class="threshold-controls">
+            <div class="threshold-group">
+                <label for="lowStockThreshold">Low Stock Threshold:</label>
+                <input type="number" id="lowStockThreshold" min="0" value="10">
+            </div>
+            <div class="threshold-group">
+                <label for="overstockThreshold">Overstock Threshold:</label>
+                <input type="number" id="overstockThreshold" min="0" value="40">
+            </div>
+        </div>
+        <button class="export-btn" onclick="exportSuggestions()">Export Suggestions</button>
+    </div>
+
+    <table id="suggestions-table">
+        <thead>
+            <tr>
+                <th>Item Name</th>
+                <th>Current Quantity</th>
+                <th>Status</th>
+                <th>Suggested Action</th>
+                <th>Trend Analysis</th>
+            </tr>
+        </thead>
+        <tbody id="suggestions-body"></tbody>
+    </table>
+
+    <!-- Existing Buttons -->
+    <div class="button-group">
+        <a href="add_inventory.html">Add Inventory</a>
+        <a href="manage_inventory.html">Manage Inventory</a>
+    </div>
+
+    <script>
+        // Keep track of historical data
+        let inventoryHistory = JSON.parse(localStorage.getItem('inventoryHistory') || '{}');
+        
+        function updateThresholds() {
+            loadInventorySuggestions();
+        }
+
+        function analyzeTrend(itemName, currentQuantity) {
+            if (!inventoryHistory[itemName]) {
+                inventoryHistory[itemName] = [];
+            }
+            
+            // Add current quantity to history
+            inventoryHistory[itemName].push({
+                quantity: currentQuantity,
+                date: new Date().toISOString()
+            });
+            
+            // Keep only last 30 days of history
+            const thirtyDaysAgo = new Date();
+            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+            inventoryHistory[itemName] = inventoryHistory[itemName].filter(record => 
+                new Date(record.date) > thirtyDaysAgo
+            );
+
+            // Analyze trend
+            const history = inventoryHistory[itemName];
+            if (history.length < 2) return "Insufficient data for trend analysis";
+
+            const recentAvg = history.slice(-3).reduce((sum, record) => sum + record.quantity, 0) / 3;
+            const oldAvg = history.slice(0, 3).reduce((sum, record) => sum + record.quantity, 0) / 3;
+
+            if (recentAvg < oldAvg * 0.9) {
+                return "📉 Declining stock levels";
+            } else if (recentAvg > oldAvg * 1.1) {
+                return "📈 Increasing stock levels";
+            }
+            return "📊 Stable stock levels";
+        }
+
+        function loadInventorySuggestions() {
+            const inventoryData = JSON.parse(localStorage.getItem('inventoryData') || '[]');
+            const salesData = JSON.parse(localStorage.getItem('salesData') || '{}');
+            const suggestionsBody = document.getElementById('suggestions-body');
+            suggestionsBody.innerHTML = '';
+
+            const lowStockThreshold = parseInt(document.getElementById('lowStockThreshold').value);
+            const overstockThreshold = parseInt(document.getElementById('overstockThreshold').value);
+
+            inventoryData.forEach(item => {
+                let status = 'Sufficient Stock';
+                let statusClass = '';
+                let suggestedAction = 'Maintain Level';
+                
+                // Calculate trend
+                const trend = analyzeTrend(item.name, item.quantity);
+
+                // Analyze sales data if available
+                let salesTrend = '';
+                if (salesData[item.name]) {
+                    const recentSales = salesData[item.name].recent || 0;
+                    const projectedDays = item.quantity / (recentSales || 1);
+                    if (projectedDays < 7) {
+                        salesTrend = "⚠️ Low stock for current sales rate";
+                    }
+                }
+
+                if (item.quantity < lowStockThreshold) {
+                    status = 'Low Stock';
+                    statusClass = 'low-stock';
+                    suggestedAction = 'Order More';
+                } else if (item.quantity > overstockThreshold) {
+                    status = 'Overstocked';
+                    statusClass = 'overstocked';
+                    suggestedAction = 'Order Less';
+                }
+
+                const row = suggestionsBody.insertRow();
+                row.innerHTML = `
+                    <td>${item.name}</td>
+                    <td>${item.quantity}</td>
+                    <td class="${statusClass}">${status}</td>
+                    <td>${suggestedAction}</td>
+                    <td>
+                        ${trend}
+                        ${salesTrend ? '<br>' + salesTrend : ''}
+                    </td>
+                `;
+            });
+
+            // Save history
+            localStorage.setItem('inventoryHistory', JSON.stringify(inventoryHistory));
+        }
+
+        function exportSuggestions() {
+            const table = document.getElementById('suggestions-table');
+            let csv = [];
+            
+            // Get headers
+            const headers = [];
+            table.querySelectorAll('th').forEach(th => headers.push(th.textContent));
+            csv.push(headers.join(','));
+            
+            // Get rows
+            table.querySelectorAll('tbody tr').forEach(tr => {
+                const row = [];
+                tr.querySelectorAll('td').forEach(td => {
+                    // Clean the content (remove HTML tags and commas)
+                    let content = td.textContent.trim().replace(/,/g, ';');
+                    row.push(content);
+                });
+                csv.push(row.join(','));
+            });
+            
+            // Create and trigger download
+            const csvContent = csv.join('\n');
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'inventory_suggestions.csv';
+            link.click();
+        }
+
+        // Add event listeners for threshold changes
+        document.getElementById('lowStockThreshold').addEventListener('change', updateThresholds);
+        document.getElementById('overstockThreshold').addEventListener('change', updateThresholds);
+
+        window.onload = loadInventorySuggestions;
+    </script>
+</body>
+</html>
