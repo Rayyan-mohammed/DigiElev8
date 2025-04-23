@@ -88,6 +88,7 @@ DigiElev8 is optimized for modern browsers including:
 - Mozilla Firefox
 - Microsoft Edge
 - Safari
+- Brave
 
 
 
